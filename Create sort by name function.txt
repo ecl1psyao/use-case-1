@@ -1,7 +1,29 @@
+Create a function that accepts a string as an attribute and can sort data by ` name/common `.
+
+The sort should accept string ` ascend or descend ` and sort countries name by provided attribute (e.g. providing attribute ascend all countries should be sorted from A to Z)
+
+Array contains such objects:
+[
+  {
+    "name": {
+      "common": "Palestine",
+      "official": "State of Palestine",
+      "nativeName": {
+        "ara": {
+          "official": "دولة فلسطين",
+          "common": "فلسطين"
+        }
+      }
+    }
+  }
+]
+
+Here is an existing component:
 import React, {useMemo, useState} from 'react';
 import axios from 'axios';
 
 const CountryForm = () => {
+    // State for the form fields
     const [field1, setField1] = useState('');
     const [field2, setField2] = useState('');
     const [field3, setField3] = useState('');
@@ -9,31 +31,18 @@ const CountryForm = () => {
     const [data, setData] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [populationFilter, setPopulationFilter] = useState('');
-    const [sortOrder, setSortOrder] = useState('ascend');
-
-    const sortCountries = (countries, order) =>
-        countries.sort((a, b) => {
-            if (order === 'ascend') {
-                return a.name.common.localeCompare(b.name.common);
-            } else {
-                return b.name.common.localeCompare(a.name.common);
-            }
-        });
 
     const filteredCountries = useMemo(() => {
         if (!data) return [];
 
         const lowercasedSearchTerm = searchTerm.toLowerCase();
 
-        const filtered = data.filter(country => {
+        return data.filter(country => {
             const countryName = country.name.common.toLowerCase();
             const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
             return countryName.includes(lowercasedSearchTerm) && populationCondition;
         });
-
-        return sortCountries(filtered, sortOrder);
-
-    }, [data, searchTerm, populationFilter, sortOrder]);
+    }, [data, searchTerm, populationFilter]);
 
     const fetchData = async () => {
         try {
@@ -110,14 +119,6 @@ const CountryForm = () => {
                 />
             </div>
 
-            <div>
-                <label>Sort Countries: </label>
-                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-                    <option value="ascend">Ascending</option>
-                    <option value="descend">Descending</option>
-                </select>
-            </div>
-
             {filteredCountries.length &&
                 <div>
                     <pre>{JSON.stringify(filteredCountries, null, 2)}</pre>
@@ -128,3 +129,75 @@ const CountryForm = () => {
 };
 
 export default CountryForm;
+
+-------------------------------------------
+
+To sort the countries by name in either ascending or descending order, you need to implement a function that takes the desired sorting attribute (either `ascend` or `descend`) and sort the countries based on this attribute.
+
+Let's add this functionality to your existing component:
+
+1. First, we'll add a dropdown to select the sorting order.
+2. Then, we'll integrate the sorting functionality in the `filteredCountries` computation.
+
+```javascript
+import React, { useMemo, useState } from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    // ... (other state values)
+
+    const [sortOrder, setSortOrder] = useState('ascend');
+
+    const sortCountries = (countries, order) => {
+        return countries.sort((a, b) => {
+            if (order === 'ascend') {
+                return a.name.common.localeCompare(b.name.common);
+            } else {
+                return b.name.common.localeCompare(a.name.common);
+            }
+        });
+    };
+
+    const filteredCountries = useMemo(() => {
+        if (!data) return [];
+
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
+            return countryName.includes(lowercasedSearchTerm) && populationCondition;
+        });
+
+        return sortCountries(filtered, sortOrder);
+
+    }, [data, searchTerm, populationFilter, sortOrder]);
+
+    // ... (rest of the component)
+
+    return (
+        <div>
+            {/* Form and other inputs ... */}
+
+            <div>
+                <label>Sort Countries: </label>
+                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                    <option value="ascend">Ascending</option>
+                    <option value="descend">Descending</option>
+                </select>
+            </div>
+
+            {/* Displaying the countries ... */}
+        </div>
+    );
+};
+
+export default CountryForm;
+```
+
+Here, we've added:
+- A `sortOrder` state with the default value set to `ascend`.
+- A `sortCountries` function that sorts the countries based on the provided order.
+- A dropdown (`<select>`) element that allows users to select the sort order.
+
+With these additions, your component will display countries sorted by their common names in either ascending or descending order, depending on the selected option from the dropdown.
