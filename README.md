@@ -1,70 +1,58 @@
-# Getting Started with Create React App
+# Country Information Viewer (React.js)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Application Description
 
-## Available Scripts
+The Country Information Viewer is a sophisticated React.js application that enables users to fetch, filter, and sort detailed information about various countries from a remote API endpoint. By utilizing dynamic input fields, users have the flexibility to define the specific details they wish to fetch about each country. Not only can they retrieve specific attributes of each country, but they also have the capability to filter the results based on population and sort them either in ascending or descending order based on the country name. With an intuitive user interface, the application makes it seamless for users to search for and display information tailored to their needs.
 
-In the project directory, you can run:
+## Running the Application Locally
 
-### `npm start`
+1. Clone the repository to your local machine.
+2. Navigate to the project's root directory in the terminal.
+3. Run `npm install` to install all the necessary dependencies.
+4. Once all dependencies are installed, run `npm start`.
+5. Open your browser and navigate to `http://localhost:3000/` to view the application.
+6. Interact with the application interface to fetch, filter, and sort country information based on your preferences.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Using the Developed Endpoint
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Given the application's functionality and the provided code snippet, here are some examples of how you might interact with the endpoint:
 
-### `npm test`
+1. Fetching names and capitals of countries:
+    - **Field 1**: name
+    - **Field 2**: capital
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Fetching countries with population less than 5 million:
+    - **Filter by Population**: 5
 
-### `npm run build`
+3. Fetching only the top 3 countries after sorting:
+    - **Record Limit**: 3
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+4. Sorting countries in descending order:
+    - **Sort Countries**: Descending
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+5. Fetching names, capitals, region, and official languages:
+    - **Field 1**: name
+    - **Field 2**: capital
+    - **Field 3**: region
+    - **Field 4**: officialLanguages
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+6. Searching for countries with the term "united":
+    - **Search Countries**: united
 
-### `npm run eject`
+7. Fetching names and currencies of countries:
+    - **Field 1**: name
+    - **Field 2**: currencies
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+8. Fetching countries with population less than 50 million and limiting the output to the top 5:
+    - **Filter by Population**: 50
+    - **Record Limit**: 5
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+9. Sorting countries in ascending order:
+    - **Sort Countries**: Ascending
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+10. Fetching names, capitals, and flag URLs:
+- **Field 1**: name
+- **Field 2**: capital
+- **Field 3**: flags
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+By following the above examples and adjusting input fields, users can fetch a wide range of information based on their specific requirements.

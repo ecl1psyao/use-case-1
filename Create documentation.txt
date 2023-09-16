@@ -1,0 +1,215 @@
+Update Readme.md for my React.js project with:
+
+Application description: 2 paragraphs, 4-10 Sentences.
+
+Information on how to run the developed application locally.
+
+At least 10 examples of how to use the developed endpoint.
+
+Here is main code:
+import React, {useMemo, useState} from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    const [field1, setField1] = useState('');
+    const [field2, setField2] = useState('');
+    const [field3, setField3] = useState('');
+    const [field4, setField4] = useState('');
+    const [data, setData] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [populationFilter, setPopulationFilter] = useState('');
+    const [sortOrder, setSortOrder] = useState('ascend');
+    const [recordLimit, setRecordLimit] = useState('');
+
+    const sortCountries = (countries, order) =>
+        countries.sort((a, b) => {
+            if (order === 'ascend') {
+                return a.name.common.localeCompare(b.name.common);
+            } else {
+                return b.name.common.localeCompare(a.name.common);
+            }
+        });
+
+    const filteredCountries = useMemo(() => {
+        if (!data) return [];
+
+        const lowerCasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
+            return countryName.includes(lowerCasedSearchTerm) && populationCondition;
+        });
+
+        const sorted = sortCountries(filtered, sortOrder);
+
+        return sorted.slice(0, recordLimit.length ? recordLimit : undefined)
+
+    }, [data, searchTerm, populationFilter, sortOrder]);
+
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}`);
+            setData(response.data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetchData();
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Field 1</label>
+                    <input
+                        type="text"
+                        value={field1}
+                        onChange={(e) => setField1(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 2</label>
+                    <input
+                        type="text"
+                        value={field2}
+                        onChange={(e) => setField2(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 3</label>
+                    <input
+                        type="text"
+                        value={field3}
+                        onChange={(e) => setField3(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 4</label>
+                    <input
+                        type="text"
+                        value={field4}
+                        onChange={(e) => setField4(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="recordLimit">Record Limit: </label>
+                    <input
+                        id="recordLimit"
+                        type="number"
+                        value={recordLimit}
+                        onChange={(e) => {
+                            setRecordLimit(e.target.value);
+                        }}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+
+            <div>
+                <label htmlFor="searchCountries">Search Countries: </label>
+                <input
+                    id="searchCountries"
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                    }}
+                />
+            </div>
+
+            <div>
+                <label htmlFor="population">Filter by Population (in millions): </label>
+                <input
+                    id="population"
+                    type="number"
+                    value={populationFilter}
+                    onChange={(e) => {
+                        setPopulationFilter(e.target.value);
+                    }}
+                />
+            </div>
+
+            <div>
+                <label htmlFor="sortCountries">Sort Countries: </label>
+                <select id="sortCountries" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                    <option value="ascend">Ascending</option>
+                    <option value="descend">Descending</option>
+                </select>
+            </div>
+
+            {filteredCountries.length &&
+                <div>
+                    <pre data-testid="countries-test-id">{JSON.stringify(filteredCountries, null, 2)}</pre>
+                </div>
+            }
+        </div>
+    );
+};
+
+export default CountryForm;
+
+------------------------------------------------
+
+# Country Information Viewer (React.js)
+
+## Application Description
+
+The Country Information Viewer is a sophisticated React.js application that enables users to fetch, filter, and sort detailed information about various countries from a remote API endpoint. By utilizing dynamic input fields, users have the flexibility to define the specific details they wish to fetch about each country. Not only can they retrieve specific attributes of each country, but they also have the capability to filter the results based on population and sort them either in ascending or descending order based on the country name. With an intuitive user interface, the application makes it seamless for users to search for and display information tailored to their needs.
+
+## Running the Application Locally
+
+1. Clone the repository to your local machine.
+2. Navigate to the project's root directory in the terminal.
+3. Run `npm install` to install all the necessary dependencies.
+4. Once all dependencies are installed, run `npm start`.
+5. Open your browser and navigate to `http://localhost:3000/` to view the application.
+6. Interact with the application interface to fetch, filter, and sort country information based on your preferences.
+
+## Using the Developed Endpoint
+
+Given the application's functionality and the provided code snippet, here are some examples of how you might interact with the endpoint:
+
+1. Fetching names and capitals of countries:
+   - **Field 1**: name
+   - **Field 2**: capital
+
+2. Fetching countries with population less than 5 million:
+   - **Filter by Population**: 5
+
+3. Fetching only the top 3 countries after sorting:
+   - **Record Limit**: 3
+
+4. Sorting countries in descending order:
+   - **Sort Countries**: Descending
+
+5. Fetching names, capitals, region, and official languages:
+   - **Field 1**: name
+   - **Field 2**: capital
+   - **Field 3**: region
+   - **Field 4**: officialLanguages
+
+6. Searching for countries with the term "united":
+   - **Search Countries**: united
+
+7. Fetching names and currencies of countries:
+   - **Field 1**: name
+   - **Field 2**: currencies
+
+8. Fetching countries with population less than 50 million and limiting the output to the top 5:
+   - **Filter by Population**: 50
+   - **Record Limit**: 5
+
+9. Sorting countries in ascending order:
+   - **Sort Countries**: Ascending
+
+10. Fetching names, capitals, and flag URLs:
+   - **Field 1**: name
+   - **Field 2**: capital
+   - **Field 3**: flags
+
+By following the above examples and adjusting input fields, users can fetch a wide range of information based on their specific requirements.
