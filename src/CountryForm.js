@@ -88,8 +88,9 @@ const CountryForm = () => {
                     />
                 </div>
                 <div>
-                    <label>Record Limit: </label>
+                    <label htmlFor="recordLimit">Record Limit: </label>
                     <input
+                        id="recordLimit"
                         type="number"
                         value={recordLimit}
                         onChange={(e) => {
@@ -101,8 +102,9 @@ const CountryForm = () => {
             </form>
 
             <div>
-                <label>Search Countries: </label>
+                <label htmlFor="searchCountries">Search Countries: </label>
                 <input
+                    id="searchCountries"
                     type="text"
                     value={searchTerm}
                     onChange={(e) => {
@@ -112,8 +114,9 @@ const CountryForm = () => {
             </div>
 
             <div>
-                <label>Filter by Population (in millions): </label>
+                <label htmlFor="population">Filter by Population (in millions): </label>
                 <input
+                    id="population"
                     type="number"
                     value={populationFilter}
                     onChange={(e) => {
@@ -123,8 +126,8 @@ const CountryForm = () => {
             </div>
 
             <div>
-                <label>Sort Countries: </label>
-                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                <label htmlFor="sortCountries">Sort Countries: </label>
+                <select id="sortCountries" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                     <option value="ascend">Ascending</option>
                     <option value="descend">Descending</option>
                 </select>
@@ -132,7 +135,7 @@ const CountryForm = () => {
 
             {filteredCountries.length &&
                 <div>
-                    <pre>{JSON.stringify(filteredCountries, null, 2)}</pre>
+                    <pre data-testid="countries-test-id">{JSON.stringify(filteredCountries, null, 2)}</pre>
                 </div>
             }
         </div>

@@ -1,0 +1,260 @@
+Create Unit tests for all 4 functions (filter, filter, sort, pagination)
+
+Here is an existing component:
+
+import React, {useMemo, useState} from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    const [field1, setField1] = useState('');
+    const [field2, setField2] = useState('');
+    const [field3, setField3] = useState('');
+    const [field4, setField4] = useState('');
+    const [data, setData] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [populationFilter, setPopulationFilter] = useState('');
+    const [sortOrder, setSortOrder] = useState('ascend');
+    const [recordLimit, setRecordLimit] = useState('');
+
+    const sortCountries = (countries, order) =>
+        countries.sort((a, b) => {
+            if (order === 'ascend') {
+                return a.name.common.localeCompare(b.name.common);
+            } else {
+                return b.name.common.localeCompare(a.name.common);
+            }
+        });
+
+    const filteredCountries = useMemo(() => {
+        if (!data) return [];
+
+        const lowerCasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
+            return countryName.includes(lowerCasedSearchTerm) && populationCondition;
+        });
+
+        const sorted = sortCountries(filtered, sortOrder);
+
+        return sorted.slice(0, recordLimit.length ? recordLimit : undefined)
+
+    }, [data, searchTerm, populationFilter, sortOrder]);
+
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}`);
+            setData(response.data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetchData();
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Field 1</label>
+                    <input
+                        type="text"
+                        value={field1}
+                        onChange={(e) => setField1(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 2</label>
+                    <input
+                        type="text"
+                        value={field2}
+                        onChange={(e) => setField2(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 3</label>
+                    <input
+                        type="text"
+                        value={field3}
+                        onChange={(e) => setField3(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 4</label>
+                    <input
+                        type="text"
+                        value={field4}
+                        onChange={(e) => setField4(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Record Limit: </label>
+                    <input
+                        type="number"
+                        value={recordLimit}
+                        onChange={(e) => {
+                            setRecordLimit(e.target.value);
+                        }}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+
+            <div>
+                <label>Search Countries: </label>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                    }}
+                />
+            </div>
+
+            <div>
+                <label>Filter by Population (in millions): </label>
+                <input
+                    type="number"
+                    value={populationFilter}
+                    onChange={(e) => {
+                        setPopulationFilter(e.target.value);
+                    }}
+                />
+            </div>
+
+            <div>
+                <label>Sort Countries: </label>
+                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                    <option value="ascend">Ascending</option>
+                    <option value="descend">Descending</option>
+                </select>
+            </div>
+
+            {filteredCountries.length &&
+                <div>
+                    <pre>{JSON.stringify(filteredCountries, null, 2)}</pre>
+                </div>
+            }
+        </div>
+    );
+};
+
+export default CountryForm;
+
+------------------------------------------------
+
+To create unit tests for the four functionalities (`filter` by name, `filter` by population, `sort`, and `pagination`), we can use the popular testing library called `@testing-library/react` along with `jest`.
+
+First, let's install the required dependencies:
+
+```bash
+npm install --save @testing-library/react @testing-library/jest-dom
+```
+
+Here are the tests:
+
+```jsx
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react';
+import CountryForm from './CountryForm';
+
+// Mocking the axios call
+jest.mock('axios', () => ({
+    get: jest.fn(() => Promise.resolve({
+        data: [
+            { name: { common: 'India' }, population: 1300000000 },
+            { name: { common: 'Australia' }, population: 25000000 },
+            { name: { common: 'Zambia' }, population: 17000000 },
+            { name: { common: 'Austria' }, population: 9000000 },
+        ]
+    }))
+}));
+
+describe('<CountryForm />', () => {
+
+    test('filters countries by name', async () => {
+        const { getByLabelText, findByText } = render(<CountryForm />);
+        fireEvent.change(getByLabelText(/Search Countries:/i), { target: { value: 'au' } });
+        const australia = await findByText(/Australia/i);
+        expect(australia).toBeInTheDocument();
+        const austria = await findByText(/Austria/i);
+        expect(austria).toBeInTheDocument();
+    });
+
+    test('filters countries by population', async () => {
+        const { getByLabelText, findByText } = render(<CountryForm />);
+        fireEvent.change(getByLabelText(/Filter by Population \(in millions\):/i), { target: { value: '15' } });
+        const zambia = await findByText(/Zambia/i);
+        expect(zambia).toBeInTheDocument();
+        const austria = await findByText(/Austria/i);
+        expect(austria).toBeInTheDocument();
+    });
+
+    test('sorts countries in ascending order', async () => {
+        const { getByLabelText, findByText, findAllByText } = render(<CountryForm />);
+        fireEvent.change(getByLabelText(/Sort Countries:/i), { target: { value: 'ascend' } });
+        const countries = await findAllByText(/name:/i);
+        expect(countries[0].textContent).toContain('Australia');
+        expect(countries[1].textContent).toContain('Austria');
+    });
+
+    test('sorts countries in descending order', async () => {
+        const { getByLabelText, findByText, findAllByText } = render(<CountryForm />);
+        fireEvent.change(getByLabelText(/Sort Countries:/i), { target: { value: 'descend' } });
+        const countries = await findAllByText(/name:/i);
+        expect(countries[0].textContent).toContain('Zambia');
+        expect(countries[1].textContent).toContain('India');
+    });
+
+    test('pagination - limits the number of records', async () => {
+        const { getByLabelText, findAllByText } = render(<CountryForm />);
+        fireEvent.change(getByLabelText(/Record Limit:/i), { target: { value: '2' } });
+        const countries = await findAllByText(/name:/i);
+        expect(countries).toHaveLength(2);
+    });
+});
+```
+
+These tests mock the API call to return some predefined countries. Then they simulate user interactions to test filtering by name, filtering by population, sorting, and pagination.
+
+Note: This is a basic set of tests. In a real-world scenario, more comprehensive tests would be necessary, including error handling, full coverage of edge cases, and more.
+
+-------------------------------------------
+
+Found a label with the text of: /Search Countries:/i, however no form control was found associated to that label. Make sure you're using the "for" attribute or "aria-labelledby" attribute correctly.
+
+---------------------------------------------
+
+The warning you received is suggesting that there's a missing connection between the label and its associated input control in your `CountryForm` component.
+
+To fix this, you need to provide an `id` attribute to the input element and then connect it to the label using the `htmlFor` attribute (which corresponds to the `for` attribute in plain HTML):
+
+I'll demonstrate this fix for the "Search Countries:" label, but the same should be applied to other labels in your component:
+
+```jsx
+<label htmlFor="searchCountries">Search Countries: </label>
+<input
+    id="searchCountries" // This ID connects the input to the label above
+    type="text"
+    value={searchTerm}
+    onChange={(e) => {
+        setSearchTerm(e.target.value);
+    }}
+/>
+```
+
+Similarly, for the test, if you're targeting the input by the label, make sure you use the correct attribute:
+
+```jsx
+const { getByLabelText } = render(<CountryForm />);
+fireEvent.change(getByLabelText('Search Countries:'), { target: { value: 'au' } });
+```
+
+You should repeat this for every label-input pair in your component. Doing this not only helps with testing but also improves accessibility for screen readers.
+
+---------------------------------------------------
+
