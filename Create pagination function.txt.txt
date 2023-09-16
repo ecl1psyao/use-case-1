@@ -1,0 +1,331 @@
+Create a function that accepts numbers as an attribute and can limit the number of records.
+
+The functionality should accept a number and retrieve first n records (e.g., providing number `15` I should receive 15 first records from API).
+
+Here is an existing code:
+import React, {useMemo, useState} from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    const [field1, setField1] = useState('');
+    const [field2, setField2] = useState('');
+    const [field3, setField3] = useState('');
+    const [field4, setField4] = useState('');
+    const [data, setData] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [populationFilter, setPopulationFilter] = useState('');
+    const [sortOrder, setSortOrder] = useState('ascend');
+
+    const sortCountries = (countries, order) =>
+        countries.sort((a, b) => {
+            if (order === 'ascend') {
+                return a.name.common.localeCompare(b.name.common);
+            } else {
+                return b.name.common.localeCompare(a.name.common);
+            }
+        });
+
+    const filteredCountries = useMemo(() => {
+        if (!data) return [];
+
+        const lowerCasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
+            return countryName.includes(lowerCasedSearchTerm) && populationCondition;
+        });
+
+        return sortCountries(filtered, sortOrder);
+
+    }, [data, searchTerm, populationFilter, sortOrder]);
+
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}`);
+            setData(response.data);
+            // Here, you can parse the JSON response further if needed.
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetchData();
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Field 1</label>
+                    <input
+                        type="text"
+                        value={field1}
+                        onChange={(e) => setField1(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 2</label>
+                    <input
+                        type="text"
+                        value={field2}
+                        onChange={(e) => setField2(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 3</label>
+                    <input
+                        type="text"
+                        value={field3}
+                        onChange={(e) => setField3(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 4</label>
+                    <input
+                        type="text"
+                        value={field4}
+                        onChange={(e) => setField4(e.target.value)}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+
+            <div>
+                <label>Search Countries: </label>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                    }}
+                />
+            </div>
+
+            <div>
+                <label>Filter by Population (in millions): </label>
+                <input
+                    type="number"
+                    value={populationFilter}
+                    onChange={(e) => {
+                        setPopulationFilter(e.target.value);
+                    }}
+                />
+            </div>
+
+            <div>
+                <label>Sort Countries: </label>
+                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+                    <option value="ascend">Ascending</option>
+                    <option value="descend">Descending</option>
+                </select>
+            </div>
+
+            {filteredCountries.length &&
+                <div>
+                    <pre>{JSON.stringify(filteredCountries, null, 2)}</pre>
+                </div>
+            }
+        </div>
+    );
+};
+
+export default CountryForm;
+
+
+Api accept limit as query param
+
+----------------------------------------
+
+Given that the API accepts a limit as a query parameter, you can add a new state for record limit, an input field to set the limit, and then modify the `fetchData` function to include the limit in the request URL.
+
+Here's how you can implement this:
+
+1. Add a state for the record limit:
+```javascript
+const [recordLimit, setRecordLimit] = useState('');
+```
+
+2. Modify the `fetchData` function to include the limit:
+```javascript
+const fetchData = async () => {
+    try {
+        const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}&limit=${recordLimit}`);
+        setData(response.data);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+};
+```
+
+3. Add an input field to set the record limit in the return of the component:
+```javascript
+<div>
+    <label>Record Limit: </label>
+    <input
+        type="number"
+        value={recordLimit}
+        onChange={(e) => {
+            setRecordLimit(e.target.value);
+        }}
+    />
+</div>
+```
+
+With these changes, when you input a value (e.g., 15) in the "Record Limit" input and submit the form, the API should return only the first 15 records (or however many you specify). Ensure that the API endpoint supports the limit query parameter as mentioned.
+
+------------------------------------------------
+
+refactor this function to accept query param only when it's not an empty string:
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3}&limit=${recordLimit}`);
+            setData(response.data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+--------------------------------------------------
+
+
+You'll want to build the query string dynamically, only adding each parameter if it has a value. Here's a refactored version of the `fetchData` function that accomplishes this:
+
+```javascript
+const fetchData = async () => {
+    try {
+        let queryParams = [];
+
+        if (field1) queryParams.push(`fields=${field1}`);
+        if (field2) queryParams.push(`${field2}`);
+        if (field3) queryParams.push(`${field3}`);
+        if (recordLimit) queryParams.push(`limit=${recordLimit}`);
+
+        const queryString = queryParams.length ? `?${queryParams.join(",")}` : '';
+
+        const response = await axios.get(`https://restcountries.com/v3.1/all${queryString}`);
+        setData(response.data);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+};
+```
+
+This code builds an array of query parameters (`queryParams`), then constructs a full query string (`queryString`) only if there's at least one valid parameter.
+
+
+------------------------------------------------------
+
+unfortunately api doesn't accept limit query param so refactor code to use client side pagination
+
+---------------------------------------------
+
+To implement client-side pagination, you'll need to make a few changes:
+
+1. Use state to manage the current page and items per page.
+2. Slice the filtered data based on the current page and items per page.
+3. Add controls to change the page.
+
+Let's begin:
+
+1. Add state for `currentPage` and `itemsPerPage`:
+
+```javascript
+const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage, setItemsPerPage] = useState(10); // Default to 10 items per page, adjust as needed
+```
+
+2. Slice the filteredCountries data:
+
+```javascript
+const paginatedCountries = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+
+    return filteredCountries.slice(startIndex, endIndex);
+}, [filteredCountries, currentPage, itemsPerPage]);
+```
+
+3. Add controls to adjust the current page:
+
+Add these just above where you display `filteredCountries`:
+
+```javascript
+<div>
+    <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)}>Previous</button>
+    <span> Page {currentPage} of {Math.ceil(filteredCountries.length / itemsPerPage)} </span>
+    <button disabled={currentPage * itemsPerPage >= filteredCountries.length} onClick={() => setCurrentPage(prev => prev + 1)}>Next</button>
+</div>
+```
+
+4. Display the `paginatedCountries` instead of `filteredCountries`:
+
+Replace:
+
+```javascript
+<pre>{JSON.stringify(filteredCountries, null, 2)}</pre>
+```
+
+With:
+
+```javascript
+<pre>{JSON.stringify(paginatedCountries, null, 2)}</pre>
+```
+
+Now, when you navigate using the "Previous" and "Next" buttons, it will display a different set of countries based on the `currentPage` and `itemsPerPage`.
+
+This is a basic implementation of pagination. You can enhance it further by adding direct page jumps, displaying more pagination controls, etc. based on your application's needs.
+
+----------------------------------------------
+
+
+Got it! If you just want to limit the length of displayed data without full pagination, it's pretty straightforward.
+
+You can slice the `filteredCountries` to display only the first `n` records, where `n` is the `recordLimit`:
+
+1. Use the `recordLimit` state as before:
+
+```javascript
+const [recordLimit, setRecordLimit] = useState('');
+```
+
+2. Slice the `filteredCountries` array to limit the displayed data:
+
+```javascript
+const limitedCountries = useMemo(() => {
+    return filteredCountries.slice(0, recordLimit);
+}, [filteredCountries, recordLimit]);
+```
+
+3. Display the `limitedCountries` instead of `filteredCountries`:
+
+Replace:
+
+```javascript
+<pre>{JSON.stringify(filteredCountries, null, 2)}</pre>
+```
+
+With:
+
+```javascript
+<pre>{JSON.stringify(limitedCountries, null, 2)}</pre>
+```
+
+4. Add the `recordLimit` input to specify the limit:
+
+```javascript
+<div>
+    <label>Number of records to display: </label>
+    <input
+        type="number"
+        value={recordLimit}
+        onChange={(e) => {
+            setRecordLimit(e.target.value);
+        }}
+    />
+</div>
+```
+
+Now, when you enter a value into the `recordLimit` input, only that number of records will be displayed.

@@ -10,6 +10,7 @@ const CountryForm = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [populationFilter, setPopulationFilter] = useState('');
     const [sortOrder, setSortOrder] = useState('ascend');
+    const [recordLimit, setRecordLimit] = useState('');
 
     const sortCountries = (countries, order) =>
         countries.sort((a, b) => {
@@ -31,7 +32,9 @@ const CountryForm = () => {
             return countryName.includes(lowerCasedSearchTerm) && populationCondition;
         });
 
-        return sortCountries(filtered, sortOrder);
+        const sorted = sortCountries(filtered, sortOrder);
+
+        return sorted.slice(0, recordLimit.length ? recordLimit : undefined)
 
     }, [data, searchTerm, populationFilter, sortOrder]);
 
@@ -39,7 +42,6 @@ const CountryForm = () => {
         try {
             const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}`);
             setData(response.data);
-            // Here, you can parse the JSON response further if needed.
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -83,6 +85,16 @@ const CountryForm = () => {
                         type="text"
                         value={field4}
                         onChange={(e) => setField4(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Record Limit: </label>
+                    <input
+                        type="number"
+                        value={recordLimit}
+                        onChange={(e) => {
+                            setRecordLimit(e.target.value);
+                        }}
                     />
                 </div>
                 <button type="submit">Submit</button>
