@@ -1,0 +1,100 @@
+Create a simple form with four input fields for each parameter and submit button. The form could be submitted with 0-4 parameters.  Use React.js
+
+Make a request to the public `REST Countries` API using endpoint https://restcountries.com/v3.1/all. Use axios
+
+Parse retrieved API response data in JSON to variable/object.
+
+---------------------------------------
+
+Sure! Here's a simple React component for the form you described. This component allows the user to fill in 0-4 parameters and fetches data from the `REST Countries` API using Axios:
+
+1. First, ensure you have `axios` installed:
+```bash
+npm install axios
+```
+
+2. Here's the React component:
+
+```javascript
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    // State for the form fields
+    const [param1, setParam1] = useState('');
+    const [param2, setParam2] = useState('');
+    const [param3, setParam3] = useState('');
+    const [param4, setParam4] = useState('');
+    const [data, setData] = useState(null);  // State to store fetched data
+
+    // Fetch data from the API
+    const fetchData = async () => {
+        try {
+            const response = await axios.get('https://restcountries.com/v3.1/all');
+            setData(response.data);
+            // Here, you can parse the JSON response further if needed.
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetchData();
+        // Handle submission logic here if any
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Param 1:</label>
+                    <input
+                        type="text"
+                        value={param1}
+                        onChange={(e) => setParam1(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Param 2:</label>
+                    <input
+                        type="text"
+                        value={param2}
+                        onChange={(e) => setParam2(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Param 3:</label>
+                    <input
+                        type="text"
+                        value={param3}
+                        onChange={(e) => setParam3(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Param 4:</label>
+                    <input
+                        type="text"
+                        value={param4}
+                        onChange={(e) => setParam4(e.target.value)}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+            {data && (
+                <div>
+                    <h3>Fetched Data</h3>
+                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default CountryForm;
+```
+
+This component displays an input form that lets you input 0-4 parameters. Once you hit the "Submit" button, it makes a GET request to the `REST Countries` API and displays the fetched JSON data below the form.
+
+Note: This example fetches data from the endpoint regardless of the parameters in the form. If you need to use these parameters to modify the API request, you would need to change the Axios call accordingly.
+
