@@ -23,12 +23,12 @@ const CountryForm = () => {
     const filteredCountries = useMemo(() => {
         if (!data) return [];
 
-        const lowercasedSearchTerm = searchTerm.toLowerCase();
+        const lowerCasedSearchTerm = searchTerm.toLowerCase();
 
         const filtered = data.filter(country => {
             const countryName = country.name.common.toLowerCase();
             const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
-            return countryName.includes(lowercasedSearchTerm) && populationCondition;
+            return countryName.includes(lowerCasedSearchTerm) && populationCondition;
         });
 
         return sortCountries(filtered, sortOrder);
