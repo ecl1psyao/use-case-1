@@ -7,9 +7,23 @@ const CountryForm = () => {
     const [field2, setField2] = useState('');
     const [field3, setField3] = useState('');
     const [field4, setField4] = useState('');
-    const [data, setData] = useState(null);  // State to store fetched data
+    const [data, setData] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredCountries, setFilteredCountries] = useState([]);
 
-    // Fetch data from the API
+    const handleFilter = () => {
+        if (!data) return;
+
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            return countryName.includes(lowercasedSearchTerm);
+        });
+
+        setFilteredCountries(filtered);
+    };
+
     const fetchData = async () => {
         try {
             const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}`);
@@ -23,8 +37,9 @@ const CountryForm = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         fetchData();
-        // Handle submission logic here if any
     };
+
+    const dataToDisplay = filteredCountries.length ? filteredCountries : data
 
     return (
         <div>
@@ -63,10 +78,22 @@ const CountryForm = () => {
                 </div>
                 <button type="submit">Submit</button>
             </form>
-            {data && (
+
+            <div>
+                <label>Search Countries: </label>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        handleFilter();
+                    }}
+                />
+            </div>
+
+            {dataToDisplay && (
                 <div>
-                    <h3>Fetched Data</h3>
-                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                    <pre>{JSON.stringify(dataToDisplay, null, 2)}</pre>
                 </div>
             )}
         </div>

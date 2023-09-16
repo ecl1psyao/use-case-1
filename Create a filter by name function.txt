@@ -1,0 +1,175 @@
+Create a function that accepts a string as a parameter and can filter by country `name/common`.
+
+The filter should search for countries names that contains string from attributes (e.g. providing `st` as attribute I could find `Estonia`, providing `Sp` I could find `Spain`)
+
+search should be case insensitive (e.g., providing `sT` should find `Estonia`)
+
+Array of objects with property name should be filtered. Here is the existing React component:
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    // State for the form fields
+    const [field1, setField1] = useState('');
+    const [field2, setField2] = useState('');
+    const [field3, setField3] = useState('');
+    const [field4, setField4] = useState('');
+    const [data, setData] = useState(null);  // State to store fetched data
+
+    // Fetch data from the API
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}`);
+            setData(response.data);
+            // Here, you can parse the JSON response further if needed.
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetchData();
+        // Handle submission logic here if any
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Field 1</label>
+                    <input
+                        type="text"
+                        value={field1}
+                        onChange={(e) => setField1(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 2</label>
+                    <input
+                        type="text"
+                        value={field2}
+                        onChange={(e) => setField2(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 3</label>
+                    <input
+                        type="text"
+                        value={field3}
+                        onChange={(e) => setField3(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 4</label>
+                    <input
+                        type="text"
+                        value={field4}
+                        onChange={(e) => setField4(e.target.value)}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+            {data && (
+                <div>
+                    <h3>Fetched Data</h3>
+                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default CountryForm;
+
+--------------------------------------------
+
+To filter country names based on the input string, we'll need to implement the following steps:
+
+1. Add a new state to store the search query (e.g., `searchTerm`).
+2. Create an input field for the `searchTerm`.
+3. Implement a filter function that will filter the `data` based on the `searchTerm`.
+4. Display the filtered results below the search input.
+
+Here's a version of the `CountryForm` component with the filter functionality added:
+
+```jsx
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    // ... other states ...
+
+    const [searchTerm, setSearchTerm] = useState('');   // State to store the search term
+    const [filteredCountries, setFilteredCountries] = useState([]);  // State to store filtered countries
+
+    // Fetch data from the API
+    const fetchData = async () => {
+        // ... existing logic ...
+    };
+
+    // Filter function
+    const handleFilter = () => {
+        if (!data) return;
+
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            return countryName.includes(lowercasedSearchTerm);
+        });
+
+        setFilteredCountries(filtered);
+    };
+
+    const handleSubmit = (e) => {
+        // ... existing logic ...
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                {/* ... existing input fields ... */}
+            </form>
+            <div>
+                <label>Search Countries: </label>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        handleFilter();
+                    }}
+                />
+            </div>
+            {data && (
+                <div>
+                    <h3>Fetched Data</h3>
+                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                </div>
+            )}
+            {filteredCountries.length > 0 && (
+                <div>
+                    <h3>Filtered Countries</h3>
+                    <ul>
+                        {filteredCountries.map(country => (
+                            <li key={country.cca3}>{country.name.common}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default CountryForm;
+```
+
+Here's a summary of the changes:
+
+1. Introduced a new state `searchTerm` to hold the search string entered by the user.
+2. Created an input field for the user to enter the `searchTerm`.
+3. Added a `handleFilter` function which filters the fetched countries based on the `searchTerm`.
+4. Displayed the filtered results in a list below the search input.
+
+Now, whenever you enter a term in the "Search Countries" input, it will filter and display the matching country names from the fetched data.
