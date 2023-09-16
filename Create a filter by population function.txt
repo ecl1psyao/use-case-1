@@ -1,0 +1,250 @@
+Create a function that accepts a number as an attribute and can filter by ` population `.
+
+The filter should search for countries where the population is less than provided number from attributes in the millions of people (e.g., by providing value `10`, I should find countries with a population less than 10m)
+
+Array to be filtered contains such objects:
+ {
+    "name": {
+      "common": "Palestine",
+      "official": "State of Palestine",
+      "nativeName": {
+        "ara": {
+          "official": "دولة فلسطين",
+          "common": "فلسطين"
+        }
+      }
+    },
+    "population": 4803269
+  },
+
+Here is existing component:
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    // State for the form fields
+    const [field1, setField1] = useState('');
+    const [field2, setField2] = useState('');
+    const [field3, setField3] = useState('');
+    const [field4, setField4] = useState('');
+    const [data, setData] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredCountries, setFilteredCountries] = useState([]);
+
+    const handleFilter = () => {
+        if (!data) return;
+
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            return countryName.includes(lowercasedSearchTerm);
+        });
+
+        setFilteredCountries(filtered);
+    };
+
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`https://restcountries.com/v3.1/all?fields=${field1},${field2},${field3},${field4}`);
+            setData(response.data);
+            // Here, you can parse the JSON response further if needed.
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetchData();
+    };
+
+    const dataToDisplay = filteredCountries.length ? filteredCountries : data
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Field 1</label>
+                    <input
+                        type="text"
+                        value={field1}
+                        onChange={(e) => setField1(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 2</label>
+                    <input
+                        type="text"
+                        value={field2}
+                        onChange={(e) => setField2(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 3</label>
+                    <input
+                        type="text"
+                        value={field3}
+                        onChange={(e) => setField3(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label>Field 4</label>
+                    <input
+                        type="text"
+                        value={field4}
+                        onChange={(e) => setField4(e.target.value)}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+
+            <div>
+                <label>Search Countries: </label>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        handleFilter();
+                    }}
+                />
+            </div>
+
+            {dataToDisplay && (
+                <div>
+                    <pre>{JSON.stringify(dataToDisplay, null, 2)}</pre>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default CountryForm;
+
+----------------------------------------
+
+To filter countries by population, you'll need to make a few changes to your `CountryForm` component.
+
+Here's how you can modify the component to add population filtering:
+
+1. Add a new state for population filter input.
+2. Modify the `handleFilter` function to account for the population filtering.
+3. Include the new filter input in the returned JSX.
+
+Here's the updated component:
+
+```javascript
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    // ... other state declarations
+    const [populationFilter, setPopulationFilter] = useState('');
+
+    const handleFilter = () => {
+        if (!data) return;
+
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+
+        const filtered = data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            // If the population filter is set, also check if the country's population is below the provided value
+            const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
+            return countryName.includes(lowercasedSearchTerm) && populationCondition;
+        });
+
+        setFilteredCountries(filtered);
+    };
+
+    // ... rest of the component
+
+    return (
+        <div>
+            {/* ... rest of the form elements */}
+
+            <div>
+                <label>Search Countries: </label>
+                <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        handleFilter();
+                    }}
+                />
+            </div>
+
+            <div>
+                <label>Filter by Population (in millions): </label>
+                <input
+                    type="number"
+                    value={populationFilter}
+                    onChange={(e) => {
+                        setPopulationFilter(e.target.value);
+                        handleFilter();
+                    }}
+                />
+            </div>
+
+            {dataToDisplay && (
+                <div>
+                    <pre>{JSON.stringify(dataToDisplay, null, 2)}</pre>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default CountryForm;
+```
+
+The code now has an additional input for filtering by population. When a user provides a value, the code checks if each country's population is below the specified threshold (converted to actual population from millions) and updates the filtered list accordingly.
+
+------------------------------------------------
+
+can you refactor handleFilter to useMemo to remove redundant state for filteredCountries?
+
+-------------------------------------------------
+
+Of course! `useMemo` is great for situations where you want to memoize (cache) the results of expensive computations to optimize performance.
+
+Here's how you can refactor `handleFilter` using `useMemo`:
+
+1. Replace the `filteredCountries` state and its `setFilteredCountries` with the `useMemo` hook.
+2. Set up the memoized `filteredCountries` based on the dependencies (`data`, `searchTerm`, and `populationFilter`).
+
+Here's the refactored component:
+
+```javascript
+import React, { useState, useMemo } from 'react';
+import axios from 'axios';
+
+const CountryForm = () => {
+    // ... other state declarations
+
+    const filteredCountries = useMemo(() => {
+        if (!data) return [];
+
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+
+        return data.filter(country => {
+            const countryName = country.name.common.toLowerCase();
+            const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
+            return countryName.includes(lowercasedSearchTerm) && populationCondition;
+        });
+    }, [data, searchTerm, populationFilter]);
+
+    // ... rest of the component
+
+    return (
+        <div>
+            {/* ... rest of the form elements and rendering logic */}
+        </div>
+    );
+};
+
+export default CountryForm;
+```
+
+This refactoring removes the need for the separate `handleFilter` function, and `filteredCountries` will only be recalculated when `data`, `searchTerm`, or `populationFilter` changes. This can provide a performance boost, especially if the dataset is large or the filtering logic is more complex.

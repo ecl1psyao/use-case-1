@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useMemo, useState} from 'react';
 import axios from 'axios';
 
 const CountryForm = () => {
@@ -9,20 +9,19 @@ const CountryForm = () => {
     const [field4, setField4] = useState('');
     const [data, setData] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredCountries, setFilteredCountries] = useState([]);
+    const [populationFilter, setPopulationFilter] = useState('');
 
-    const handleFilter = () => {
-        if (!data) return;
+    const filteredCountries = useMemo(() => {
+        if (!data) return [];
 
         const lowercasedSearchTerm = searchTerm.toLowerCase();
 
-        const filtered = data.filter(country => {
+        return data.filter(country => {
             const countryName = country.name.common.toLowerCase();
-            return countryName.includes(lowercasedSearchTerm);
+            const populationCondition = populationFilter ? country.population < populationFilter * 1000000 : true;
+            return countryName.includes(lowercasedSearchTerm) && populationCondition;
         });
-
-        setFilteredCountries(filtered);
-    };
+    }, [data, searchTerm, populationFilter]);
 
     const fetchData = async () => {
         try {
@@ -38,8 +37,6 @@ const CountryForm = () => {
         e.preventDefault();
         fetchData();
     };
-
-    const dataToDisplay = filteredCountries.length ? filteredCountries : data
 
     return (
         <div>
@@ -86,16 +83,26 @@ const CountryForm = () => {
                     value={searchTerm}
                     onChange={(e) => {
                         setSearchTerm(e.target.value);
-                        handleFilter();
                     }}
                 />
             </div>
 
-            {dataToDisplay && (
+            <div>
+                <label>Filter by Population (in millions): </label>
+                <input
+                    type="number"
+                    value={populationFilter}
+                    onChange={(e) => {
+                        setPopulationFilter(e.target.value);
+                    }}
+                />
+            </div>
+
+            {filteredCountries.length &&
                 <div>
-                    <pre>{JSON.stringify(dataToDisplay, null, 2)}</pre>
+                    <pre>{JSON.stringify(filteredCountries, null, 2)}</pre>
                 </div>
-            )}
+            }
         </div>
     );
 };
